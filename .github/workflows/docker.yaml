@@ -1,0 +1,33 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clone Repo
+      uses: actions/checkout@v3
+
+    - name: Set SHA-Commit Tag
+      id: sha
+      run: echo ::set-output name=commit_hash::${GITHUB_SHA::8}
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/lukasljl/dualis-notification:${{ steps.sha.outputs.commit_hash }}
+          ghcr.io/lukasljl/dualis-notification:latest
+        labels: LukasLJL/dualis-notification
