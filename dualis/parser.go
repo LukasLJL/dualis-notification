@@ -196,8 +196,6 @@ ProcessRows:
 
 		switch scrape.Attr(htmlColumns[0], "class") {
 		case "level01":
-			log.Printf("┌ Attempt: %s\n", scrape.Text(htmlColumns[0]))
-
 			attempt := Attempt{
 				Label: scrape.Text(htmlColumns[0]),
 			}
@@ -205,8 +203,6 @@ ProcessRows:
 
 		case "level02":
 			if processingEvent && len(htmlColumns) > 1 && scrape.Attr(htmlColumns[1], "class") != "level02 level02_chkbox_workaround_mpa" {
-				log.Printf("└ Event result: %s\n", scrape.Text(htmlColumns[3]))
-
 				processingEvent = false
 
 				// Intoducing these variables to combat heavy nesting of slice keys
@@ -216,8 +212,6 @@ ProcessRows:
 				//event.Grade = scrape.Text(htmlColumns[3])
 				module.Attempts[len(module.Attempts)-1].Events[len(module.Attempts[len(module.Attempts)-1].Events)-1].Grade = scrape.Text(htmlColumns[3])
 			} else {
-				log.Printf("├┬ New event: %s\n", scrape.Text(htmlColumns[0]))
-
 				processingEvent = true
 
 				event := Event{
@@ -227,8 +221,6 @@ ProcessRows:
 			}
 
 		case "tbdata":
-			log.Printf("│├─ Exam: %s\n", scrape.Text(htmlColumns[1]))
-
 			// Intoducing these variables to combat heavy nesting of slice keys
 			//attempt := module.Attempts[len(module.Attempts)-1]
 			//event := attempt.Events[len(attempt.Events)-1]
