@@ -56,7 +56,7 @@ func (dualis *Dualis) pollGrades() {
 func (dualis *Dualis) sendNotification(modules *[]Module) {
 	log.Printf("Sending notification for %v modules.\n", len(*modules))
 
-	tpl, err := template.ParseFiles("notification.tpl")
+	tpl, err := template.ParseFiles("templates/notification.tpl")
 	if err != nil {
 		panic(err)
 	}
