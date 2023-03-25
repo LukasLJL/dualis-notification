@@ -7,6 +7,6 @@ RUN CGO_ENABLED=0 go build -o /main .
 FROM alpine:3.17
 WORKDIR /
 COPY --from=builder /main ./
-COPY ./config.env.example ./
+COPY ./config.env.example ./config.env
 COPY ./templates/ ./templates
 ENTRYPOINT ["./main"]
