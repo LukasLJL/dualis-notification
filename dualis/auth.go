@@ -8,7 +8,6 @@ import (
 
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 )
 
 func (dualis *Dualis) login(username, password string) (homeUrl *url.URL, ok bool) {
@@ -29,10 +28,9 @@ func (dualis *Dualis) login(username, password string) (homeUrl *url.URL, ok boo
 
 	resp, _ := dualis.Client.Do(req)
 
-	if len(resp.Header.Get("REFRESH")) == 0 {
+	if len(resp.Header.Get("REFRESH")) == 0 || resp.StatusCode != 200 {
 		log.Fatalln("Could not log in. Check credentials.")
-		var u *url.URL
-		return u, false
+		return nil, false
 	} else {
 		log.Println("Login successful. Following 1st startup redirect.")
 	}
@@ -40,8 +38,7 @@ func (dualis *Dualis) login(username, password string) (homeUrl *url.URL, ok boo
 	_, ok = dualis.sessionCookie(resp)
 	if !ok {
 		log.Fatal("No session cookie configured.")
-		var u *url.URL
-		return u, false
+		return nil, false
 	}
 
 	u, _ := url.Parse("https://dualis.dhbw.de")
@@ -53,17 +50,25 @@ func (dualis *Dualis) login(username, password string) (homeUrl *url.URL, ok boo
 
 	root, _ := html.Parse(resp.Body)
 	elem, ok := scrape.Find(root, func(n *html.Node) bool {
-		return n.DataAtom == atom.Meta && n.Attr[0].Key == "http-equiv" && n.Attr[0].Val == "refresh"
+		for _, a := range n.Attr {
+			return a.Key == "href" && strings.Contains(a.Val, "scripts/mgrqispi.dll")
+		}
+		return false
 	})
 
 	if !ok {
 		log.Fatalln("Could not find 2nd startup redirect link.")
-		var u *url.URL
-		return u, false
+		return nil, false
 	}
 
-	redirectUrl, _ := dualis.cleanRefreshURL(elem.Attr[1].Val)
+	url, err := url.Parse(elem.Attr[0].Val)
+
+	if err != nil {
+		log.Fatalln("Could not parse 2nd startup redirect link.")
+		return nil, false
+	}
+
 	log.Println("Found 2nd redirect link. Home successfully discovered.")
 
-	return redirectUrl, true
+	return url, true
 }
